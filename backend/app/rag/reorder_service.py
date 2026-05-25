@@ -58,7 +58,7 @@ class ReorderService:
     """文档重排序服务"""
     
     def __init__(self):
-        self.LOCAL_MODEL_PATH = os.getenv("RERANKER_MODEL_PATH", r"D:\Hugging_Face\models\Qwen3-Reranker-0.6B")
+        self.LOCAL_MODEL_PATH = os.getenv("RERANKER_MODEL_PATH", r"E:\devsoftware\devsoftware\ai_local_model\local_model\Qwen3-Reranker-0.6B")
         self.MODELSCOPE_MODEL_NAME = "Qwen/Qwen3-Reranker-0.6B"
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self._model = None
