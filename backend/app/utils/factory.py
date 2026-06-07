@@ -35,7 +35,12 @@ class DashScopeEmbeddingsWrapper(Embeddings):
                 input=text
             )
             if resp.status_code == 200:
-                results.append(resp.output['embedding'])
+                # 阿里云API返回的结构是 {'embeddings': [{'embedding': [...], 'text_index': 0}]}
+                if 'embeddings' in resp.output and resp.output['embeddings']:
+                    results.append(resp.output['embeddings'][0]['embedding'])
+                else:
+                    logger.error(f"阿里云嵌入响应结构异常: {resp.output}")
+                    results.append([])
             else:
                 logger.error(f"阿里云嵌入调用失败: {resp.message}")
                 results.append([])
@@ -48,7 +53,12 @@ class DashScopeEmbeddingsWrapper(Embeddings):
             input=text
         )
         if resp.status_code == 200:
-            return resp.output['embedding']
+            # 阿里云API返回的结构是 {'embeddings': [{'embedding': [...], 'text_index': 0}]}
+            if 'embeddings' in resp.output and resp.output['embeddings']:
+                return resp.output['embeddings'][0]['embedding']
+            else:
+                logger.error(f"阿里云嵌入响应结构异常: {resp.output}")
+                return []
         else:
             logger.error(f"阿里云嵌入调用失败: {resp.message}")
             return []

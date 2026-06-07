@@ -1,5 +1,7 @@
 import os, hashlib, aiofiles, asyncio, sys
 from langchain_core.documents import Document
+from docx import Document as DocxDocument
+
 
 from app.core.logger_handler import logger
 from app.utils.path_tool import get_abstract_path
@@ -125,8 +127,11 @@ async def word_loader(file_path: str) -> list[Document]:
     """
     abs_file_path = get_abstract_path(file_path) if not os.path.isabs(file_path) else file_path
     try:
-        loader = TextLoader(abs_file_path, encoding='utf-8')
-        return await asyncio.to_thread(loader.load)
+        doc = DocxDocument(abs_file_path)
+        text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+        if text.strip():
+            return [Document(page_content=text, metadata={"source": abs_file_path})]
+        return []
     except Exception as e:
         logger.error(f"【WORD文件加载】加载文件 {abs_file_path} 时出错: {e}")
         return []
@@ -238,8 +243,11 @@ def word_loader_sync(file_path: str) -> list[Document]:
     """
     abs_file_path = get_abstract_path(file_path) if not os.path.isabs(file_path) else file_path
     try:
-        loader = TextLoader(abs_file_path, encoding='utf-8')
-        return loader.load()
+        doc = DocxDocument(abs_file_path)
+        text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+        if text.strip():
+            return [Document(page_content=text, metadata={"source": abs_file_path})]
+        return []
     except Exception as e:
         logger.error(f"【WORD文件加载】加载文件 {abs_file_path} 时出错: {e}")
         return []
