@@ -1,9 +1,12 @@
 import os
 import json
+import time
+import base64
 from typing import Optional, Dict, Any
 import requests
 from dotenv import load_dotenv
-from jose import JWTError, jwt
+from jose import JWTError, jwt as jose_jwt
+import jwt  # PyJWT - 用于 EdDSA JWT 生成
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
@@ -186,3 +189,138 @@ async def get_user_info_from_redis(user_id: str, credentials: HTTPAuthorizationC
             user_info = None
 
     return user_info
+
+
+# ==============================================
+# 和风天气 JWT 认证模块
+# ==============================================
+
+import time as time_module
+
+
+def generate_qweather_jwt_token() -> str:
+    """
+    生成和风天气 JWT Token
+
+    使用 Ed25519 算法签名，包含：
+    - sub: 项目ID
+    - kid: 凭证ID
+    - iat: 签发时间
+    - exp: 过期时间
+
+    Returns:
+        JWT Token 字符串
+    """
+    # 从环境变量读取配置
+    private_key_path = os.getenv("WEATHER_JWT_PRIVATE_KEY_PATH")
+    sub = os.getenv("WEATHER_JWT_SUB")
+    kid = os.getenv("WEATHER_JWT_KID")
+    expiration_hours = int(os.getenv("WEATHER_JWT_EXPIRATION_HOURS", "24"))
+
+    if not private_key_path or not sub or not kid:
+        raise ValueError("JWT 认证配置不完整：缺少私钥路径、sub 或 kid")
+
+    # 读取私钥文件
+    if not os.path.exists(private_key_path):
+        raise FileNotFoundError(f"私钥文件不存在: {private_key_path}")
+
+    with open(private_key_path, "r") as f:
+        private_key = f.read()
+
+    # JWT 载荷（参考和风天气官方文档）
+    payload = {
+        "sub": sub,
+        "iat": int(time_module.time()) - 30,
+        "exp": int(time_module.time()) + (expiration_hours * 3600) - 60,
+    }
+
+    # JWT 头部
+    headers = {
+        "alg": "EdDSA",
+        "kid": kid
+    }
+
+    # 使用 PyJWT 生成 EdDSA JWT
+    token = jwt.encode(payload, private_key, algorithm="EdDSA", headers=headers)
+
+    # 打印 JWT Token 到日志（用于手动验证）
+    logger.info(f"生成和风天气 JWT Token（sub: {sub}, kid: {kid}）", extra={"path": "auth_utils.generate_qweather_jwt_token"})
+    logger.info(f"JWT Token: {token}", extra={"path": "auth_utils.generate_qweather_jwt_token"})
+    return token
+
+
+# ==============================================
+# JWT Token 缓存机制
+# ==============================================
+_qweather_jwt_token_cache = {
+    "token": None,
+    "generated_at": None,
+    "expires_in": 24 * 60 * 60  # 24小时（秒）
+}
+
+
+def get_weather_auth_headers() -> dict:
+    """
+    获取和风天气认证头
+
+    根据配置自动选择认证方式：
+    - JWT: 使用 Bearer Token（带缓存和自动续期）
+    - KEY: 使用 API Key 查询参数
+
+    Returns:
+        认证头字典（包含 Authorization 或空字典）
+    """
+    auth_type = os.getenv("WEATHER_AUTH_TYPE", "KEY").upper()
+
+    if auth_type == "JWT":
+        return _get_cached_qweather_jwt_token()
+    else:
+        # API KEY 方式不需要额外的认证头，key 会作为查询参数
+        return {}
+
+
+def _get_cached_qweather_jwt_token() -> dict:
+    """
+    获取缓存的 JWT Token，自动续期
+
+    缓存策略：
+    1. 如果缓存的 Token 存在且未过期，直接返回
+    2. 如果 Token 不存在或已过期，重新生成并缓存
+
+    Returns:
+        包含 Authorization 的请求头
+    """
+    current_time = time.time()
+
+    # 检查缓存是否存在且有效
+    if (_qweather_jwt_token_cache["token"] is not None and
+        _qweather_jwt_token_cache["generated_at"] is not None):
+
+        # 计算已过时间
+        elapsed = current_time - _qweather_jwt_token_cache["generated_at"]
+
+        # 如果 Token 还未过期（预留 5 分钟缓冲），直接返回缓存
+        if elapsed < (_qweather_jwt_token_cache["expires_in"] - 300):
+            logger.debug(f"使用缓存的 JWT Token（已缓存 {int(elapsed)} 秒）", extra={"path": "auth_utils._get_cached_qweather_jwt_token"})
+            return {"Authorization": f"Bearer {_qweather_jwt_token_cache['token']}"}
+
+    # Token 不存在或已过期，重新生成
+    logger.info("JWT Token 缓存未命中或已过期，生成新 Token...", extra={"path": "auth_utils._get_cached_qweather_jwt_token"})
+    token = generate_qweather_jwt_token()
+
+    # 更新缓存
+    _qweather_jwt_token_cache["token"] = token
+    _qweather_jwt_token_cache["generated_at"] = current_time
+
+    return {"Authorization": f"Bearer {token}"}
+
+
+def invalidate_qweather_jwt_token_cache():
+    """
+    清除 JWT Token 缓存
+
+    用于强制重新生成 Token（例如私钥更换后）
+    """
+    _qweather_jwt_token_cache["token"] = None
+    _qweather_jwt_token_cache["generated_at"] = None
+    logger.info("JWT Token 缓存已清除", extra={"path": "auth_utils.invalidate_qweather_jwt_token_cache"})

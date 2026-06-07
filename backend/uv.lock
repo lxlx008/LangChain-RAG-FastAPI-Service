@@ -206,6 +206,8 @@ dependencies = [
     { name = "accelerate" },
     { name = "aiofiles" },
     { name = "aiomysql" },
+    { name = "base64url" },
+    { name = "cryptography" },
     { name = "dashscope" },
     { name = "fastapi" },
     { name = "imagehash" },
@@ -222,6 +224,7 @@ dependencies = [
     { name = "pillow" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
+    { name = "pyjwt" },
     { name = "pymupdf" },
     { name = "pypdf" },
     { name = "python-dotenv" },
@@ -256,7 +259,9 @@ requires-dist = [
     { name = "accelerate", specifier = ">=1.13.0" },
     { name = "aiofiles", specifier = "~=25.1.0" },
     { name = "aiomysql", specifier = ">=0.3.2" },
+    { name = "base64url", specifier = ">=1.1.1" },
     { name = "black", marker = "extra == 'dev'", specifier = ">=24.0.0" },
+    { name = "cryptography", specifier = ">=46.0.5" },
     { name = "dashscope", specifier = ">=1.25.14" },
     { name = "fastapi", specifier = "~=0.123.0" },
     { name = "imagehash", specifier = ">=4.3.0" },
@@ -274,13 +279,14 @@ requires-dist = [
     { name = "pillow", specifier = ">=10.0.0" },
     { name = "pydantic", specifier = "~=2.12.5" },
     { name = "pydantic-settings", specifier = "~=2.13.1" },
+    { name = "pyjwt", specifier = ">=2.13.0" },
     { name = "pymupdf", specifier = ">=1.25.0" },
     { name = "pypdf", specifier = ">=6.9.2" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "python-dotenv", specifier = "~=1.2.2" },
     { name = "python-jose", specifier = "~=3.5.0" },
     { name = "python-magic", specifier = ">=0.4.27" },
-    { name = "python-magic-bin", specifier = ">=0.4.14" },
+    { name = "python-magic-bin", specifier = "==0.4.14" },
     { name = "python-multipart", specifier = ">=0.0.22" },
     { name = "pyyaml", specifier = "~=6.0.3" },
     { name = "rank-bm25", specifier = ">=0.2.2" },
@@ -297,6 +303,15 @@ requires-dist = [
     { name = "uvicorn", specifier = "==0.21.1" },
 ]
 provides-extras = ["dev"]
+
+[[package]]
+name = "base64url"
+version = "1.1.1"
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/17/d5/9d749f7b55f734be709c1c78e7100abeee4559b4139a782df638f4592298/base64url-1.1.1.tar.gz", hash = "sha256:c7accac6a116299bebbd1fbb83b8a3b6192ac5bee5bc53d88e7fb79f99d29e6b", size = 3580, upload-time = "2026-02-16T12:50:56.071Z" }
+wheels = [
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/05/be/4041fd20bcedf32755427bc409f058118d979c8381ce0008aa89776fac73/base64url-1.1.1-py3-none-any.whl", hash = "sha256:455ff8619739fdd118e01ef5990e821b272fb29ad7e8b27a08fa21c1bd6ccdd7", size = 2732, upload-time = "2026-02-16T12:50:57.148Z" },
+]
 
 [[package]]
 name = "bcrypt"
@@ -3798,6 +3813,15 @@ source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
 sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/b0/77/a5b8c569bf593b0140bde72ea885a803b82086995367bf2037de0159d924/pygments-2.19.2.tar.gz", hash = "sha256:636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887", size = 4968631, upload-time = "2025-06-21T13:39:12.283Z" }
 wheels = [
     { url = "https://pypi.tuna.tsinghua.edu.cn/packages/c7/21/705964c7812476f378728bdf590ca4b771ec72385c533964653c68e86bdc/pygments-2.19.2-py3-none-any.whl", hash = "sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b", size = 1225217, upload-time = "2025-06-21T13:39:07.939Z" },
+]
+
+[[package]]
+name = "pyjwt"
+version = "2.13.0"
+source = { registry = "https://pypi.tuna.tsinghua.edu.cn/simple" }
+sdist = { url = "https://pypi.tuna.tsinghua.edu.cn/packages/3b/81/58d0ac84e1ef3a3843791d6954d94c0b33d526c75eeb1efbce9d0a4c4077/pyjwt-2.13.0.tar.gz", hash = "sha256:41571c89ca91598c79e8ef18a2d07367d4810fbbd6f637794879baf1b7703423", size = 107515, upload-time = "2026-05-21T19:54:36.618Z" }
+wheels = [
+    { url = "https://pypi.tuna.tsinghua.edu.cn/packages/a3/5e/ecf12fdb62546d64385c158514e9b2b671f7832108ef2ecd2020ce0af2d1/pyjwt-2.13.0-py3-none-any.whl", hash = "sha256:66adcc2aff09b3f1bbd95fc1e1577df8ac8723c978552fd43304c8a290ac5728", size = 31274, upload-time = "2026-05-21T19:54:35.362Z" },
 ]
 
 [[package]]

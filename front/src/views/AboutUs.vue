@@ -23,14 +23,14 @@
             <span class="link-text">github.com/RMA-MUN/LangChain-RAG-FastAPI-Service</span>
           </template>
         </van-cell>
-        <van-cell class="contact-cell" title="作者邮箱" value="n3032747608@163.com">
+        <van-cell class="contact-cell" title="作者邮箱" value="linc789@qq.com">
           <template #icon>
             <div class="contact-icon email-icon">
               <van-icon name="envelop-o" size="14" />
             </div>
           </template>
         </van-cell>
-        <van-cell class="contact-cell" title="作者QQ" value="3032747608">
+        <van-cell class="contact-cell" title="作者QQ" value="1252630974">
           <template #icon>
             <div class="contact-icon qq-icon">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
