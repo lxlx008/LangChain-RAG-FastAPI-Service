@@ -1,11 +1,16 @@
 import json
+import os
 from typing import Any
 
 import redis.asyncio as redis
+from dotenv import load_dotenv
 
-REDIS_HOST = "localhost"
-REDIS_PORT = 6379
-REDIS_DB = 3
+load_dotenv()
+
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
+REDIS_DB = int(os.getenv("REDIS_DB", "0"))
+REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", None)
 
 # 全局redis客户端对象
 redis_client = None
@@ -14,12 +19,15 @@ async def connect_redis():
     """连接Redis"""
     global redis_client
     if redis_client is None:
-        redis_client = redis.Redis(
-            host=REDIS_HOST, # redis主机地址
-            port=REDIS_PORT, # redis端口号
-            db=REDIS_DB,     # redis数据库编号(0-15)
-            decode_responses=True # 是否对返回值进行解码(True:返回字符串,False:返回字节)
+        redis_kwargs = dict(
+            host=REDIS_HOST,
+            port=REDIS_PORT,
+            db=REDIS_DB,
+            decode_responses=True,
         )
+        if REDIS_PASSWORD:
+            redis_kwargs["password"] = REDIS_PASSWORD
+        redis_client = redis.Redis(**redis_kwargs)
     return redis_client
 
 async def close_redis():

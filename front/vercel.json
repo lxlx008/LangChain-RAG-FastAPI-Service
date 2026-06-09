@@ -1,0 +1,27 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
+  "rewrites": [
+    {
+      "source": "/chat/:path*",
+      "destination": "https://YOUR_RENDER_APP.onrender.com/chat/:path*"
+    },
+    {
+      "source": "/knowledge/:path*",
+      "destination": "https://YOUR_RENDER_APP.onrender.com/knowledge/:path*"
+    },
+    {
+      "source": "/health/:path*",
+      "destination": "https://YOUR_RENDER_APP.onrender.com/health/:path*"
+    },
+    {
+      "source": "/user/:path*",
+      "destination": "https://YOUR_DJANGO_APP.onrender.com/user/:path*"
+    },
+    {
+      "source": "/file/:path*",
+      "destination": "https://YOUR_DJANGO_APP.onrender.com/file/:path*"
+    }
+  ]
+}

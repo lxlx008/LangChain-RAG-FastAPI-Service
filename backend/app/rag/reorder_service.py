@@ -1,14 +1,13 @@
 from typing import List, Dict, Any
-import torch
 import os
 from dotenv import load_dotenv
-from sentence_transformers import CrossEncoder
-from modelscope import snapshot_download
-from tqdm import tqdm
 from app.core.logger_handler import logger
 
 # 加载环境变量
 load_dotenv()
+
+# 检查是否启用重排序（默认启用，可通过环境变量禁用）
+RERANK_ENABLED = os.getenv("RERANK_ENABLED", "true").lower() == "true"
 
 
 def find_model_path(base_path: str) -> str:
@@ -26,15 +25,23 @@ def find_model_path(base_path: str) -> str:
 
 def check_and_download_reranker_model() -> None:
     """检查并重排序模型，在FastAPI启动时执行"""
-    LOCAL_MODEL_PATH = os.getenv("RERANKER_MODEL_PATH", r"D:\Hugging_Face\models\Qwen3-Reranker-0.6B")
-    MODELSCOPE_MODEL_NAME = "Qwen/Qwen3-Reranker-0.6B"
-
+    if not RERANK_ENABLED:
+        logger.info("⚠️  重排序功能已禁用，跳过模型检查")
+        return
+    
     try:
+        LOCAL_MODEL_PATH = os.getenv("RERANKER_MODEL_PATH", r"D:\Hugging_Face\models\Qwen3-Reranker-0.6B")
+        MODELSCOPE_MODEL_NAME = "Qwen/Qwen3-Reranker-0.6B"
+
         if os.path.exists(LOCAL_MODEL_PATH) and os.path.isdir(LOCAL_MODEL_PATH):
             logger.info(f"✅ 检测到本地重排序模型：{LOCAL_MODEL_PATH}")
         else:
             logger.warning(f"⚠️  本地模型未找到：{LOCAL_MODEL_PATH}")
             logger.info(f"🔄 开始从魔搭社区下载模型：{MODELSCOPE_MODEL_NAME}")
+
+            # 延迟导入，避免未启用时加载依赖
+            from tqdm import tqdm
+            from modelscope import snapshot_download
 
             os.makedirs(LOCAL_MODEL_PATH, exist_ok=True)
 
@@ -58,30 +65,52 @@ class ReorderService:
     """文档重排序服务"""
     
     def __init__(self):
-        self.LOCAL_MODEL_PATH = os.getenv("RERANKER_MODEL_PATH", r"E:\devsoftware\devsoftware\ai_local_model\local_model\Qwen3-Reranker-0.6B")
-        self.MODELSCOPE_MODEL_NAME = "Qwen/Qwen3-Reranker-0.6B"
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self._model = None
+        self.enabled = RERANK_ENABLED
+        if self.enabled:
+            self.LOCAL_MODEL_PATH = os.getenv("RERANKER_MODEL_PATH", r"E:\devsoftware\devsoftware\ai_local_model\local_model\Qwen3-Reranker-0.6B")
+            self.MODELSCOPE_MODEL_NAME = "Qwen/Qwen3-Reranker-0.6B"
+            self._model = None
+            # 自动释放模式：每次使用后自动释放内存（节省内存）
+            self.auto_unload = os.getenv("RERANK_AUTO_UNLOAD", "true").lower() == "true"
+        else:
+            logger.info("⚠️  重排序服务已禁用")
     
-    async def _get_model(self):
-        """懒加载模型实例"""
+    async def _load_model(self):
+        """加载模型（按需加载）"""
         if self._model is None:
+            # 延迟导入，避免未启用时加载依赖
+            import torch
+            from sentence_transformers import CrossEncoder
+            
             actual_model_path = find_model_path(self.LOCAL_MODEL_PATH)
+            device = "cuda" if torch.cuda.is_available() else "cpu"
             logger.info(f"✅ 加载重排序模型：{actual_model_path}")
             self._model = CrossEncoder(
                 actual_model_path,
                 max_length=512,
-                device=self.device,
+                device=device,
                 local_files_only=True
             )
             self._model.eval()
-            logger.info(f"✅ 模型加载成功，使用设备：{self.device}")
+            logger.info(f"✅ 模型加载成功，使用设备：{device}")
         return self._model
+    
+    async def _unload_model(self):
+        """释放模型内存"""
+        if self._model is not None:
+            # 清理模型占用的内存
+            import torch
+            del self._model
+            self._model = None
+            # 如果使用GPU，清空显存缓存
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            logger.info("✅ 重排序模型已释放内存")
     
     @property
     async def model(self):
-        """获取模型实例（懒加载）"""
-        return await self._get_model()
+        """获取模型实例（按需加载）"""
+        return await self._load_model()
     
     async def reorder_documents(self, query: str, documents: List[str], thinking_callback=None) -> Dict[str, Any]:
         """
@@ -93,6 +122,14 @@ class ReorderService:
                  {"success": bool, "documents": List[Dict], "error": str}
         """
         try:
+            # 如果禁用重排序，直接返回原文档
+            if not self.enabled:
+                return {
+                    "success": True,
+                    "documents": [{"document": doc, "similarity": 1.0} for doc in documents],
+                    "error": ""
+                }
+            
             if not documents:
                 return {
                     "success": True,
@@ -113,6 +150,7 @@ class ReorderService:
             # 使用模型进行批量预测（batch_size=1避免padding令牌报错）
             model = await self.model
             # 禁用梯度计算，提高推理性能
+            import torch
             with torch.no_grad():
                 scores = model.predict(pairs, batch_size=1)
             
@@ -145,6 +183,10 @@ class ReorderService:
             # 按相似度分数降序排序
             sorted_docs = sorted(scored_documents, key=lambda x: x["similarity"], reverse=True)
             logger.info(f"【重排序服务】文档重排序成功，返回 {len(sorted_docs)} 个文档")
+            
+            # 自动释放模型内存（节省内存）
+            if self.auto_unload:
+                await self._unload_model()
             
             return {
                 "success": True,
