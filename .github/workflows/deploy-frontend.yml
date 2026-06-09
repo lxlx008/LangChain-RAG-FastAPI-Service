@@ -26,7 +26,7 @@ jobs:
       - name: Build frontend
         working-directory: front
         env:
-          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL || 'http://localhost:8000' }}
         run: npm run build
 
       - name: Deploy to GitHub Pages
