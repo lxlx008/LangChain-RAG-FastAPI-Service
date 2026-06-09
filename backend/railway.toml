@@ -3,3 +3,9 @@ builder = "nixpacks"
 
 [deploy]
 startCommand = "uvicorn main:app --host 0.0.0.0 --port $PORT"
+
+[nixpacks]
+phases = """
+install:
+  apt-get update && apt-get install -y libmagic1
+"""
