@@ -538,8 +538,6 @@ python-magic==0.4.27
     # via
     #   backend (pyproject.toml)
     #   unstructured
-python-magic-bin==0.4.14
-    # via backend (pyproject.toml)
 python-multipart==0.0.28
     # via backend (pyproject.toml)
 python-oxmsg==0.0.2
