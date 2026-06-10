@@ -6,18 +6,12 @@ from app.models.chat_history import Base
 
 load_dotenv()
 
-DATABASE_URL = os.getenv('DATABASE_URL')
-
-if DATABASE_URL:
-    ASYNC_DATABASE_URL = DATABASE_URL.replace('postgresql://', 'postgresql+asyncpg://')
-else:
-    ASYNC_DATABASE_URL = f"mysql+aiomysql://{os.getenv('MYSQL_USER', 'root')}:{os.getenv('MYSQL_PASSWORD', '')}@{os.getenv('MYSQL_HOST', 'localhost')}:{os.getenv('MYSQL_PORT', '3306')}/{os.getenv('MYSQL_DATABASE', 'chat_history')}?charset=utf8mb4"
+ASYNC_DATABASE_URL = "sqlite+aiosqlite:///./chat_history.db"
 
 async_engine = create_async_engine(
     ASYNC_DATABASE_URL,
-    pool_size=10,
-    max_overflow=20,
-    echo=True
+    echo=True,
+    connect_args={"check_same_thread": False}
 )
 
 AsyncSessionLocal = async_sessionmaker(
