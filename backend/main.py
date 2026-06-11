@@ -79,9 +79,12 @@ async def startup_event():
     await init_database_session_manager()
     logger.info("数据库会话管理器初始化完成")
 
-    # 连接Redis
-    await connect_redis()
-    logger.info("Redis连接初始化完成")
+    # 连接Redis（可选，如果失败则跳过）
+    try:
+        await connect_redis()
+        logger.info("Redis连接初始化完成")
+    except Exception as e:
+        logger.warning(f"⚠️ Redis连接失败: {str(e)}，将在需要时重试")
     
     # 检查并重排序模型
     check_and_download_reranker_model()
