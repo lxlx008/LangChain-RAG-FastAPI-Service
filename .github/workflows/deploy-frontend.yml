@@ -26,7 +26,8 @@ jobs:
       - name: Build frontend
         working-directory: front
         env:
-          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL || 'http://localhost:8000' }}
+          VITE_BASE_URL: https://langchain-rag-fastapi-service-production.up.railway.app
+          VITE_USER_BASE_URL: https://langchain-rag-fastapi-service-production.up.railway.app
         run: npm run build
 
       - name: Deploy to GitHub Pages
