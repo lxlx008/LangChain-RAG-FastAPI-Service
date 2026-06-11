@@ -54,7 +54,7 @@ export const useUserStore = defineStore('user', {
           };
         }
 
-        const response = await axios.post(apiConfig.endpoints.login, {
+        const response = await axios.post(`${apiConfig.userBaseURL}${apiConfig.endpoints.login}`, {
           username: userData.username,
           password: userData.password
         }, {
@@ -101,7 +101,7 @@ export const useUserStore = defineStore('user', {
         // 发送注销请求
         const token = localStorage.getItem('jwt_token') || this.token;
         if (token) {
-          await axios.post(apiConfig.endpoints.logout, {}, {
+          await axios.post(`${apiConfig.userBaseURL}${apiConfig.endpoints.logout}`, {}, {
             headers: {
               Authorization: `Bearer ${token}`,
               'X-CSRFTOKEN': getCsrfToken()
@@ -134,7 +134,7 @@ export const useUserStore = defineStore('user', {
         }
         
         // 发送获取用户信息请求
-        const response = await axios.get(apiConfig.endpoints.profile, {
+        const response = await axios.get(`${apiConfig.userBaseURL}${apiConfig.endpoints.profile}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             'X-CSRFTOKEN': getCsrfToken()
@@ -181,7 +181,7 @@ export const useUserStore = defineStore('user', {
         
         // 发送更新用户信息请求
         console.log('更新用户信息请求参数:', userData);
-        const response = await axios.put('/user/update/', userData, {
+        const response = await axios.put(`${apiConfig.userBaseURL}/user/update/`, userData, {
           headers: {
             Authorization: `Bearer ${token}`,
             'X-CSRFTOKEN': getCsrfToken(),
@@ -235,7 +235,7 @@ export const useUserStore = defineStore('user', {
         }
         
         // 发送更新密码请求
-        const response = await axios.post('/user/change_password/', {
+        const response = await axios.post(`${apiConfig.userBaseURL}/user/change_password/`, {
           old_password: oldPassword,
           new_password: newPassword
         }, {
@@ -274,7 +274,7 @@ export const useUserStore = defineStore('user', {
         console.log('请求数据:', userData);
         
         // 发送注册请求到用户服务
-        const response = await axios.post('/user/register/', {
+        const response = await axios.post(`${apiConfig.userBaseURL}/user/register/`, {
           username: userData.username,
           email: userData.email,
           telephone: userData.telephone || '',

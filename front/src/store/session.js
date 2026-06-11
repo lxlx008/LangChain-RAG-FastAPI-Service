@@ -22,7 +22,7 @@ export const useSessionStore = defineStore('session', {
         this.loading = true;
         const token = localStorage.getItem('jwt_token');
         
-        const response = await axios.get(`${apiConfig.endpoints.getUserSessions}/${userId}`, {
+        const response = await axios.get(`${apiConfig.baseURL}${apiConfig.endpoints.getUserSessions}/${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -68,7 +68,7 @@ export const useSessionStore = defineStore('session', {
         this.loading = true;
         const token = localStorage.getItem('jwt_token');
         
-        const response = await axios.get(`${apiConfig.endpoints.getSession}${sessionId}`, {
+        const response = await axios.get(`${apiConfig.baseURL}${apiConfig.endpoints.getSession}${sessionId}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -98,7 +98,7 @@ export const useSessionStore = defineStore('session', {
         this.loading = true;
         const token = localStorage.getItem('jwt_token');
         
-        await axios.delete(`${apiConfig.endpoints.deleteSession}${sessionId}`, {
+        await axios.delete(`${apiConfig.baseURL}${apiConfig.endpoints.deleteSession}${sessionId}`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -139,7 +139,8 @@ export const useSessionStore = defineStore('session', {
         const token = localStorage.getItem('jwt_token');
         
         // 发送第一个消息来创建会话
-        const response = await fetch(apiConfig.endpoints.agentQueryStream, {
+        const url = `${apiConfig.baseURL}${apiConfig.endpoints.agentQueryStream}`;
+        const response = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
