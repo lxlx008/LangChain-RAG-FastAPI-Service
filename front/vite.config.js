@@ -4,6 +4,7 @@ import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [vue()],
+  base: '/LangChain-RAG-FastAPI-Service-L/',
   server: {
     port: 3000,
     host: true,
