@@ -8,19 +8,27 @@
   "rewrites": [
     {
       "source": "/chat/:path*",
-      "destination": "/chat/:path*"
+      "destination": "https://rag-backend-xxxx.onrender.com/chat/:path*"
     },
     {
       "source": "/knowledge/:path*",
-      "destination": "/knowledge/:path*"
+      "destination": "https://rag-backend-xxxx.onrender.com/knowledge/:path*"
     },
     {
       "source": "/health/:path*",
-      "destination": "/health/:path*"
+      "destination": "https://rag-backend-xxxx.onrender.com/health/:path*"
     },
     {
       "source": "/api/:path*",
-      "destination": "/api/:path*"
+      "destination": "https://rag-backend-xxxx.onrender.com/api/:path*"
+    },
+    {
+      "source": "/user/:path*",
+      "destination": "https://rag-backend-xxxx.onrender.com/user/:path*"
+    },
+    {
+      "source": "/file/:path*",
+      "destination": "https://rag-backend-xxxx.onrender.com/file/:path*"
     }
   ]
 }
